@@ -83,9 +83,9 @@ const Game: React.FC<GameProps> = ({ onGameOver, walletProfile }) => {
         <div style={playerStyle}>
           <Player direction={player.direction} />
         </div>
-        {enemies.map(enemy => enemy.active && (
+        {enemies.filter(enemy => enemy.active).map(enemy => (
            <div
-            key={enemy.id}
+            key={`enemy-${enemy.id}`}
             style={{
                 position: 'absolute',
                 left: `${enemy.position.x * TILE_SIZE}px`,
@@ -104,7 +104,7 @@ const Game: React.FC<GameProps> = ({ onGameOver, walletProfile }) => {
         ))}
         {miningEffects.map(effect => (
           <MiningEffect
-            key={effect.id}
+            key={`mining-${effect.id}`}
             x={effect.x}
             y={effect.y}
             direction={effect.direction}
@@ -114,7 +114,7 @@ const Game: React.FC<GameProps> = ({ onGameOver, walletProfile }) => {
         ))}
         {particleEffects.map(effect => (
           <ParticleEffect
-            key={effect.id}
+            key={`particle-${effect.id}`}
             x={effect.x}
             y={effect.y}
             tileSize={TILE_SIZE}

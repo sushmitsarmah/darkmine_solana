@@ -1,9 +1,8 @@
-// Sprite sheet URLs for the player character
-// Player sprite sheet for 4 directions (down, left, right, up)
-export const PLAYER_SPRITE_SHEET = '/assets/miner.jpg';
+// Player character image
+export const PLAYER_IMAGE = '/assets/miner.png';
 
-// Gloom Bat enemy sprite sheet
-export const GLOOM_BAT_SPRITE_SHEET = '/assets/enemy.jpg';
+// Gloom Bat enemy image
+export const ENEMY_IMAGE = '/assets/enemy.png';
 
 // Background image for the game
 export const BACKGROUND_IMAGE = '/assets/background.png';

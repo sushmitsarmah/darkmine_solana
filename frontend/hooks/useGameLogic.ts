@@ -61,9 +61,7 @@ export const useGameLogic = (onGameOver: (score: number, inventory: Inventory, e
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const [enemiesDefeated, setEnemiesDefeated] = useState(0);
   const [miningEffects, setMiningEffects] = useState<MiningEffect[]>([]);
-  const [miningEffectId, setMiningEffectId] = useState(0);
   const [particleEffects, setParticleEffects] = useState<ParticleEffectData[]>([]);
-  const [particleEffectId, setParticleEffectId] = useState(0);
 
   const resetGame = useCallback(() => {
     const newGrid = generateGrid();
@@ -73,6 +71,8 @@ export const useGameLogic = (onGameOver: (score: number, inventory: Inventory, e
     setPlayer(INITIAL_PLAYER_STATE);
     setInventory(INITIAL_INVENTORY);
     setEnemiesDefeated(0);
+    setMiningEffects([]);
+    setParticleEffects([]);
     const { updatedGrid, updatedEnemies } = updateVisibility(INITIAL_PLAYER_STATE.position, INITIAL_PLAYER_STATE.visionRange, newGrid, newEnemies);
     setGrid(updatedGrid);
     setEnemies(updatedEnemies);
@@ -160,20 +160,18 @@ export const useGameLogic = (onGameOver: (score: number, inventory: Inventory, e
   }, [grid, onGameOver, inventory, enemiesDefeated]);
 
   const addMiningEffect = useCallback((x: number, y: number, direction: Direction) => {
-    const id = miningEffectId + 1;
-    setMiningEffectId(id);
+    const id = Date.now() + Math.random();
     const newEffect: MiningEffect = { x, y, direction, id };
-    setMiningEffects(prev => [...prev, newEffect]);
+    setMiningEffects(effects => [...effects, newEffect]);
 
     // Remove effect after animation completes
     setTimeout(() => {
-      setMiningEffects(prev => prev.filter(effect => effect.id !== id));
+      setMiningEffects(effects => effects.filter(effect => effect.id !== id));
     }, 500);
-  }, [miningEffectId]);
+  }, []);
 
   const addParticleEffect = useCallback((x: number, y: number, tileType: TileType) => {
-    const id = particleEffectId + 1;
-    setParticleEffectId(id);
+    const id = Date.now() + Math.random();
     const particleType =
       tileType === TileType.COAL ? 'coal' :
       tileType === TileType.ORE ? 'ore' :
@@ -186,13 +184,13 @@ export const useGameLogic = (onGameOver: (score: number, inventory: Inventory, e
       id,
       type: particleType as any
     };
-    setParticleEffects(prev => [...prev, newEffect]);
+    setParticleEffects(effects => [...effects, newEffect]);
 
     // Remove effect after animation completes
     setTimeout(() => {
-      setParticleEffects(prev => prev.filter(effect => effect.id !== id));
+      setParticleEffects(effects => effects.filter(effect => effect.id !== id));
     }, 1500);
-  }, [particleEffectId]);
+  }, []);
 
   const mineTile = useCallback((x: number, y: number, currentP: PlayerState, currentI: Inventory, currentG: Tile[][], currentE: Enemy[]) => {
     let newPlayerState = { ...currentP };
