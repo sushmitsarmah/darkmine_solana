@@ -8,10 +8,18 @@ import WalletConnector from './components/WalletConnector';
 import SolanaProvider from './components/SolanaProvider';
 import { GameStatus } from './types';
 
+interface GameStats {
+  score: number;
+  coal: number;
+  ore: number;
+  diamond: number;
+  enemiesDefeated: number;
+}
+
 const AppContent: React.FC = () => {
   const { connected, publicKey } = useWallet();
   const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.START_SCREEN);
-  const [score, setScore] = useState(0);
+  const [gameStats, setGameStats] = useState<GameStats>({ score: 0, coal: 0, ore: 0, diamond: 0, enemiesDefeated: 0 });
   const [walletProfile, setWalletProfile] = useState<string | null>(null);
 
   const handleWalletConnected = useCallback((address: string) => {
@@ -22,13 +30,19 @@ const AppContent: React.FC = () => {
     setGameStatus(GameStatus.PLAYING);
   }, []);
 
-  const endGame = useCallback((finalScore: number) => {
-    setScore(finalScore);
+  const endGame = useCallback((finalScore: number, inventory: { coal: number; ore: number; diamond: number }, enemiesDefeated: number) => {
+    setGameStats({
+      score: finalScore,
+      coal: inventory.coal,
+      ore: inventory.ore,
+      diamond: inventory.diamond,
+      enemiesDefeated,
+    });
     setGameStatus(GameStatus.GAME_OVER);
   }, []);
 
   const restartGame = useCallback(() => {
-    setScore(0);
+    setGameStats({ score: 0, coal: 0, ore: 0, diamond: 0, enemiesDefeated: 0 });
     setGameStatus(GameStatus.PLAYING);
   }, []);
 
@@ -37,7 +51,7 @@ const AppContent: React.FC = () => {
       case GameStatus.PLAYING:
         return <Game onGameOver={endGame} walletProfile={walletProfile} />;
       case GameStatus.GAME_OVER:
-        return <GameOverScreen score={score} onRestart={restartGame} walletProfile={walletProfile} />;
+        return <GameOverScreen gameStats={gameStats} onRestart={restartGame} walletProfile={walletProfile} />;
       case GameStatus.START_SCREEN:
       default:
         return <StartScreen onStartGame={startGame} walletProfile={walletProfile} />;

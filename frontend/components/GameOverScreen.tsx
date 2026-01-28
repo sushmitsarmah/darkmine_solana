@@ -1,13 +1,70 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useGameContract } from '../hooks/useGameContract';
+
+interface GameStats {
+  score: number;
+  coal: number;
+  ore: number;
+  diamond: number;
+  enemiesDefeated: number;
+}
 
 interface GameOverScreenProps {
-  score: number;
+  gameStats: GameStats;
   onRestart: () => void;
   walletProfile?: string | null;
 }
 
-const GameOverScreen: React.FC<GameOverScreenProps> = ({ score, onRestart, walletProfile }) => {
+const GameOverScreen: React.FC<GameOverScreenProps> = ({ gameStats, onRestart, walletProfile }) => {
+  const { connected } = useWallet();
+  const { submitGameResult, initializePlayer, getPlayerAccount } = useGameContract();
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const submitToBlockchain = async () => {
+      if (!connected || submitting || submitted) {
+        return;
+      }
+
+      setSubmitting(true);
+      setError(null);
+
+      try {
+        // Check if player account exists, if not initialize it
+        const playerAccount = await getPlayerAccount();
+        if (!playerAccount) {
+          console.log('Initializing player account...');
+          await initializePlayer();
+        }
+
+        // Submit game result
+        await submitGameResult(
+          gameStats.score,
+          gameStats.coal,
+          gameStats.ore,
+          gameStats.diamond,
+          gameStats.enemiesDefeated
+        );
+
+        setSubmitted(true);
+        console.log('Game result submitted successfully!');
+      } catch (err: any) {
+        console.error('Error submitting game result:', err);
+        setError(err.message || 'Failed to submit game result');
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    if (connected && gameStats.score > 0) {
+      submitToBlockchain();
+    }
+  }, [connected, gameStats, submitting, submitted, submitGameResult, initializePlayer, getPlayerAccount]);
+
   return (
     <div className="flex flex-col items-center justify-center text-center p-4">
       <div className="border-4 border-red-700 bg-gray-900 p-8 w-full max-w-md box-shadow-hard">
@@ -22,14 +79,36 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ score, onRestart, walle
         <p className="text-2xl mb-8 text-gray-300">
           Your journey ends here.
         </p>
-        <div className="text-3xl mb-10">
-          <span className="text-gray-400">Final Score: </span>
-          <span className="text-yellow-400">{score}</span>
+        <div className="text-2xl mb-6 space-y-2">
+          <div>
+            <span className="text-gray-400">Final Score: </span>
+            <span className="text-yellow-400">{gameStats.score}</span>
+          </div>
+          <div className="text-lg text-gray-400">
+            <div>Coal: {gameStats.coal}</div>
+            <div>Ore: {gameStats.ore}</div>
+            <div>Diamonds: {gameStats.diamond}</div>
+            <div>Enemies Defeated: {gameStats.enemiesDefeated}</div>
+          </div>
         </div>
         {walletProfile && (
-          <p className="text-sm text-blue-400 mb-6">
-            Run saved on-chain!
-          </p>
+          <div className="mb-6">
+            {submitting && (
+              <p className="text-sm text-yellow-400">
+                Submitting to blockchain...
+              </p>
+            )}
+            {submitted && (
+              <p className="text-sm text-green-400">
+                Run saved on-chain!
+              </p>
+            )}
+            {error && (
+              <p className="text-sm text-red-400">
+                Error: {error}
+              </p>
+            )}
+          </div>
         )}
         <button
           onClick={onRestart}

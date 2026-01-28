@@ -53,12 +53,13 @@ const generateEnemies = (grid: Tile[][]): Enemy[] => {
 };
 
 
-export const useGameLogic = (onGameOver: (score: number) => void) => {
+export const useGameLogic = (onGameOver: (score: number, inventory: Inventory, enemiesDefeated: number) => void) => {
   const [grid, setGrid] = useState<Tile[][]>([]);
   const [player, setPlayer] = useState<PlayerState>(INITIAL_PLAYER_STATE);
   const [inventory, setInventory] = useState<Inventory>(INITIAL_INVENTORY);
   const [message, setMessage] = useState('Use arrow keys or WASD to move and mine.');
   const [enemies, setEnemies] = useState<Enemy[]>([]);
+  const [enemiesDefeated, setEnemiesDefeated] = useState(0);
   const [miningEffects, setMiningEffects] = useState<MiningEffect[]>([]);
   const [miningEffectId, setMiningEffectId] = useState(0);
   const [particleEffects, setParticleEffects] = useState<ParticleEffectData[]>([]);
@@ -71,6 +72,7 @@ export const useGameLogic = (onGameOver: (score: number) => void) => {
     setEnemies(newEnemies);
     setPlayer(INITIAL_PLAYER_STATE);
     setInventory(INITIAL_INVENTORY);
+    setEnemiesDefeated(0);
     const { updatedGrid, updatedEnemies } = updateVisibility(INITIAL_PLAYER_STATE.position, INITIAL_PLAYER_STATE.visionRange, newGrid, newEnemies);
     setGrid(updatedGrid);
     setEnemies(updatedEnemies);
@@ -148,14 +150,14 @@ export const useGameLogic = (onGameOver: (score: number) => void) => {
               setPlayer(p => {
                   const newPlayerHealthState = {...p, health: playerHealth};
                   if (playerHealth <= 0) {
-                      onGameOver(p.score);
+                      onGameOver(p.score, inventory, enemiesDefeated);
                   }
                   return newPlayerHealthState;
               });
           }
           return nextEnemies;
       });
-  }, [grid, onGameOver]);
+  }, [grid, onGameOver, inventory, enemiesDefeated]);
 
   const addMiningEffect = useCallback((x: number, y: number, direction: Direction) => {
     const id = miningEffectId + 1;
@@ -266,6 +268,7 @@ export const useGameLogic = (onGameOver: (score: number) => void) => {
           if(newHealth <= 0) {
               setMessage(`You defeated the Gloom Bat! +100 score.`);
               newEnemies = enemies.filter(e => e.id !== enemyAtTarget.id);
+              setEnemiesDefeated(prev => prev + 1);
           } else {
                setMessage(`You hit the Gloom Bat!`);
                const enemyIndex = enemies.findIndex(e => e.id === enemyAtTarget.id);
@@ -296,14 +299,14 @@ export const useGameLogic = (onGameOver: (score: number) => void) => {
       }
       
       if (newPlayerState.health <= 0 || newPlayerState.energy <= 0) {
-        onGameOver(newPlayerState.score);
+        onGameOver(newPlayerState.score, inventory, enemiesDefeated);
         return INITIAL_PLAYER_STATE;
       }
 
       processEnemyTurn(newPlayerState);
       return newPlayerState;
     });
-  }, [grid, enemies, inventory, onGameOver, processEnemyTurn, mineTile, addMiningEffect]);
+  }, [grid, enemies, inventory, enemiesDefeated, onGameOver, processEnemyTurn, mineTile, addMiningEffect]);
 
   const handlePower = useCallback((power: PowerType) => {
     let cost = 0;

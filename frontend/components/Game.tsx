@@ -12,7 +12,7 @@ import { BACKGROUND_IMAGE } from '../assets';
 import { GRID_WIDTH, GRID_HEIGHT } from '../constants';
 
 interface GameProps {
-  onGameOver: (score: number) => void;
+  onGameOver: (score: number, inventory: { coal: number; ore: number; diamond: number }, enemiesDefeated: number) => void;
   walletProfile?: string | null;
 }
 
