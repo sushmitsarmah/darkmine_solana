@@ -1,0 +1,5 @@
+{
+  "name": "DarkMine",
+  "description": "A 2D, top-down mining roguelike inspired by old Pokémon visuals. You start in a dark mine where most tiles are hidden. Every block mined is a gamble: ore, boosts, tools, traps, or nothing. Runs are short, tense, and replayable.",
+  "requestFramePermissions": []
+}
