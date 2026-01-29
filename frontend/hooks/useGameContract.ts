@@ -4,6 +4,8 @@ import { PublicKey, SystemProgram } from '@solana/web3.js';
 import { useAnchorProgram } from './useAnchorProgram';
 import { BN } from '@coral-xyz/anchor';
 
+const TREASURY_ADDRESS = new PublicKey("7hobWVCH1mVBtedRndouStN2ku5UF6E2Zb1gCHqexeRp");
+
 export function useGameContract() {
   const { program, programId } = useAnchorProgram();
   const wallet = useWallet();
@@ -30,14 +32,18 @@ export function useGameContract() {
       throw new Error('Wallet not connected');
     }
 
+    console.log('@@!!!! Initializing player')
+
     const [playerAccountPDA] = getPlayerAccountPDA(wallet.publicKey);
 
     try {
+      console.log('!!!!!!!!!!')
       const tx = await program.methods
         .initializePlayer()
         .accounts({
           playerAccount: playerAccountPDA,
           player: wallet.publicKey,
+          treasury: TREASURY_ADDRESS,
           systemProgram: SystemProgram.programId,
         })
         .rpc();

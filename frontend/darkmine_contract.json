@@ -1,5 +1,5 @@
 {
-  "address": "6u8zV7yYbDZg38eUabnwL6ghkghwFwZv7CHrZnh6xnxM",
+  "address": "6u8zV7yYbDZg38eUabnwL6ghkghwFvZv7CHrZnh6xnxM",
   "metadata": {
     "name": "darkmine_contract",
     "version": "0.1.0",
@@ -7,6 +7,52 @@
     "description": "Created with Anchor"
   },
   "instructions": [
+    {
+      "name": "get_leaderboard",
+      "discriminator": [
+        120,
+        151,
+        17,
+        201,
+        227,
+        143,
+        94,
+        32
+      ],
+      "accounts": [
+        {
+          "name": "leaderboard",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  101,
+                  97,
+                  100,
+                  101,
+                  114,
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [],
+      "returns": {
+        "vec": {
+          "defined": {
+            "name": "ScoreEntry"
+          }
+        }
+      }
+    },
     {
       "name": "initialize_leaderboard",
       "discriminator": [
@@ -96,6 +142,10 @@
           "name": "player",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
         },
         {
           "name": "system_program",
@@ -393,6 +443,11 @@
       "code": 6003,
       "name": "LeaderboardNotInitialized",
       "msg": "Leaderboard not initialized"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidTreasury",
+      "msg": "Invalid treasury account provided"
     }
   ],
   "types": [

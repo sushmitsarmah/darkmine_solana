@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import Game from './components/Game';
 import StartScreen from './components/StartScreen';
@@ -7,6 +7,8 @@ import GameOverScreen from './components/GameOverScreen';
 import WalletConnector from './components/WalletConnector';
 import SolanaProvider from './components/SolanaProvider';
 import { GameStatus } from './types';
+import { useGameContract } from './hooks/useGameContract';
+import { PublicKey } from '@solana/web3.js';
 
 interface GameStats {
   score: number;
@@ -18,13 +20,49 @@ interface GameStats {
 
 const AppContent: React.FC = () => {
   const { connected, publicKey } = useWallet();
+  const { initializePlayer, getPlayerAccount } = useGameContract();
   const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.START_SCREEN);
   const [gameStats, setGameStats] = useState<GameStats>({ score: 0, coal: 0, ore: 0, diamond: 0, enemiesDefeated: 0 });
   const [walletProfile, setWalletProfile] = useState<string | null>(null);
+  const [playerInitialized, setPlayerInitialized] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const handleWalletConnected = useCallback((address: string) => {
     setWalletProfile(address);
   }, []);
+
+  const checkPlayerInitialization = useCallback(async () => {
+    if (!publicKey || !getPlayerAccount) return;
+
+    try {
+      const account = await getPlayerAccount();
+      setPlayerInitialized(!!account);
+    } catch (error) {
+      setPlayerInitialized(false);
+    }
+  }, [publicKey, getPlayerAccount]);
+
+  useEffect(() => {
+    if (connected && publicKey) {
+      checkPlayerInitialization();
+    } else {
+      setPlayerInitialized(false);
+    }
+  }, [connected, publicKey, checkPlayerInitialization]);
+
+  const handleInitializePlayer = useCallback(async () => {
+    if (!initializePlayer || !publicKey) return;
+
+    setIsInitializing(true);
+    try {
+      await initializePlayer();
+      setPlayerInitialized(true);
+    } catch (error) {
+      console.error('Failed to initialize player:', error);
+    } finally {
+      setIsInitializing(false);
+    }
+  }, [initializePlayer, publicKey]);
 
   const startGame = useCallback(() => {
     setGameStatus(GameStatus.PLAYING);
@@ -54,7 +92,16 @@ const AppContent: React.FC = () => {
         return <GameOverScreen gameStats={gameStats} onRestart={restartGame} walletProfile={walletProfile} />;
       case GameStatus.START_SCREEN:
       default:
-        return <StartScreen onStartGame={startGame} walletProfile={walletProfile} />;
+        return (
+          <StartScreen
+            onStartGame={startGame}
+            walletProfile={walletProfile}
+            isWalletConnected={connected}
+            playerInitialized={playerInitialized}
+            onInitializePlayer={handleInitializePlayer}
+            isInitializing={isInitializing}
+          />
+        );
     }
   };
 

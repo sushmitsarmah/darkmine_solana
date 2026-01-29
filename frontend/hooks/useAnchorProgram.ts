@@ -4,7 +4,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import IDL from '../darkmine_contract.json';
 
-export const PROGRAM_ID = new PublicKey('6u8zV7yYbDZg38eUabnwL6ghkghwFwZv7CHrZnh6xnxM');
+export const PROGRAM_ID = new PublicKey('6u8zV7yYbDZg38eUabnwL6ghkghwFvZv7CHrZnh6xnxM');
 
 export function useAnchorProgram() {
   const { connection } = useConnection();

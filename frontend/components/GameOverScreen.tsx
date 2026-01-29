@@ -35,7 +35,14 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ gameStats, onRestart, w
 
       try {
         // Check if player account exists, if not initialize it
-        const playerAccount = await getPlayerAccount();
+        let playerAccount = null;
+        try {
+          playerAccount = await getPlayerAccount();
+        } catch (err: any) {
+          // Account doesn't exist yet - this is expected for new players
+          console.log('Player account not found, will initialize...');
+        }
+
         if (!playerAccount) {
           console.log('Initializing player account...');
           await initializePlayer();
